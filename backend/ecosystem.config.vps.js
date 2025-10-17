@@ -10,11 +10,11 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 5000,
-        DB_HOST: "localhost",
+        DB_HOST: "127.0.0.1",
         DB_PORT: 3306,
         DB_NAME: "ecommerce_db",
         DB_USER: "ecommerce_user",
-        DB_PASSWORD: "your_db_password"
+        DB_PASSWORD: "Re1317821Za@"
       }
     }
   ]
