@@ -2,21 +2,42 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure upload directory exists
-const uploadPath = process.env.UPLOAD_PATH || './uploads';
+// Ensure upload directory exists with absolute path for VPS
+const uploadPath = process.env.UPLOAD_PATH || path.join(__dirname, '..', 'uploads');
+console.log('Upload path:', uploadPath); // For debugging
+
+// Create uploads directory if it doesn't exist
 if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
+  try {
+    fs.mkdirSync(uploadPath, { recursive: true });
+    console.log('Uploads directory created successfully');
+  } catch (error) {
+    console.error('Failed to create uploads directory:', error);
+  }
+} else {
+  console.log('Uploads directory already exists');
+}
+
+// Check if directory is writable
+try {
+  fs.accessSync(uploadPath, fs.constants.W_OK);
+  console.log('Uploads directory is writable');
+} catch (error) {
+  console.error('Uploads directory is not writable:', error);
 }
 
 // Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log('Saving file to:', uploadPath); // For debugging
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
     // Generate unique filename
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    const filename = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
+    console.log('Generated filename:', filename); // For debugging
+    cb(null, filename);
   }
 });
 
@@ -47,6 +68,7 @@ const upload = multer({
 // Error handling middleware for multer
 const handleMulterError = (error, req, res, next) => {
   if (error instanceof multer.MulterError) {
+    console.error('Multer error:', error); // For debugging
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ message: 'File size too large. Maximum size is 5MB.' });
     }
@@ -55,6 +77,7 @@ const handleMulterError = (error, req, res, next) => {
     }
     return res.status(400).json({ message: 'File upload error: ' + error.message });
   } else if (error) {
+    console.error('Upload error:', error); // For debugging
     return res.status(400).json({ message: error.message });
   }
   next();

@@ -14,8 +14,7 @@ const dbConfig = {
   queueLimit: 0,
   charset: 'utf8mb4_unicode_ci',
   connectTimeout: 60000, // 60 seconds
-  acquireTimeout: 60000, // 60 seconds
-  timeout: 60000 // 60 seconds
+  // Removed invalid options: acquireTimeout, timeout, handleDisconnects
 };
 
 console.log('Database configuration:');
@@ -33,10 +32,7 @@ const pool = mysql.createPool({
   // Connection pooling improvements
   connectionLimit: 20,
   queueLimit: 0,
-  acquireTimeout: 60000,
-  timeout: 60000,
-  // Add connection event handlers
-  handleDisconnects: true
+  // Removed invalid options: acquireTimeout, timeout, handleDisconnects
 });
 
 // Add event listeners for debugging
@@ -66,11 +62,10 @@ const initialPool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   connectTimeout: 60000, // 60 seconds
-  acquireTimeout: 60000, // 60 seconds
-  timeout: 60000, // 60 seconds
   // Add debugging for connection events
   debug: false, // Set to true for detailed debugging
   trace: true
+  // Removed invalid options: acquireTimeout, timeout, handleDisconnects
 });
 
 // Add event listeners for debugging

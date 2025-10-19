@@ -72,8 +72,13 @@ const getCategoryById = async (req, res) => {
 
 const createCategory = async (req, res) => {
   try {
+    console.log('Create category request received');
+    console.log('Request file:', req.file);
+    console.log('Request body:', req.body);
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({
         message: 'Validation failed',
         errors: errors.array()
@@ -81,28 +86,41 @@ const createCategory = async (req, res) => {
     }
 
     const { name, description } = req.body;
-    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+    
+    // Generate absolute URL for VPS deployment
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    console.log('Base URL:', baseUrl);
+    
+    const image_url = req.file ? `${baseUrl}/uploads/${req.file.filename}` : null;
+    console.log('Generated image URL:', image_url);
     
     const categoryId = await Category.create({ name, description, image_url });
     const category = await Category.findById(categoryId);
     
+    console.log('Category created successfully:', category);
     res.status(201).json({
       message: 'Category created successfully',
       category
     });
   } catch (error) {
+    console.error('Create category error:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'Category name already exists' });
     }
-    console.error('Create category error:', error);
     res.status(500).json({ message: 'Failed to create category' });
   }
 };
 
 const updateCategory = async (req, res) => {
   try {
+    console.log('Update category request received');
+    console.log('Request file:', req.file);
+    console.log('Request params:', req.params);
+    console.log('Request body:', req.body);
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({
         message: 'Validation failed',
         errors: errors.array()
@@ -111,7 +129,13 @@ const updateCategory = async (req, res) => {
 
     const { id } = req.params;
     const { name, description } = req.body;
-    const image_url = req.file ? `/uploads/${req.file.filename}` : undefined; // undefined means not updating image
+    
+    // Generate absolute URL for VPS deployment
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    console.log('Base URL:', baseUrl);
+    
+    const image_url = req.file ? `${baseUrl}/uploads/${req.file.filename}` : undefined; // undefined means not updating image
+    console.log('Generated image URL:', image_url);
     
     // If no image is provided, don't update the image_url field
     const categoryData = { name, description };
@@ -126,15 +150,16 @@ const updateCategory = async (req, res) => {
 
     const category = await Category.findById(id);
     
+    console.log('Category updated successfully:', category);
     res.json({
       message: 'Category updated successfully',
       category
     });
   } catch (error) {
+    console.error('Update category error:', error);
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'Category name already exists' });
     }
-    console.error('Update category error:', error);
     res.status(500).json({ message: 'Failed to update category' });
   }
 };

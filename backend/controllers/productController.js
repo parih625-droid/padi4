@@ -41,6 +41,11 @@ const getProductById = async (req, res) => {
 
 const createProduct = async (req, res) => {
   try {
+    console.log('Create product request received');
+    console.log('Request files:', req.files);
+    console.log('Request file:', req.file);
+    console.log('Request body:', req.body);
+    
     const { name, description, price, category_id, stock_quantity, is_amazing_offer, discount_percentage } = req.body;
       
     // Validate required fields
@@ -50,11 +55,18 @@ const createProduct = async (req, res) => {
       });
     }
 
+    // Generate absolute URL for VPS deployment
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    console.log('Base URL:', baseUrl);
+    
+    const image_url = req.file ? `${baseUrl}/uploads/${req.file.filename}` : null;
+    console.log('Generated primary image URL:', image_url);
+
     const productData = {
       name,
       description: description || '',
       price: parseFloat(price),
-      image_url: req.file ? `/uploads/${req.file.filename}` : null,
+      image_url,
       category_id: parseInt(category_id),
       stock_quantity: parseInt(stock_quantity) || 0,
       is_amazing_offer: is_amazing_offer === 'true' || is_amazing_offer === true,
@@ -62,14 +74,18 @@ const createProduct = async (req, res) => {
     };
 
     const productId = await Product.create(productData);
+    console.log('Product created with ID:', productId);
       
-    // If there are additional images, add them
+    // If there are additional images, add them with absolute URLs
     if (req.files && req.files.length > 0) {
-      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      console.log('Processing additional images:', req.files.length);
+      const imageUrls = req.files.map(file => `${baseUrl}/uploads/${file.filename}`);
+      console.log('Generated additional image URLs:', imageUrls);
       await Product.addImages(productId, imageUrls);
     }
       
     const product = await Product.findById(productId);
+    console.log('Final product data:', product);
     res.status(201).json({ 
       message: 'Product created successfully',
       product 
@@ -82,6 +98,12 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
+    console.log('Update product request received');
+    console.log('Request files:', req.files);
+    console.log('Request file:', req.file);
+    console.log('Request params:', req.params);
+    console.log('Request body:', req.body);
+    
     const { id } = req.params;
     const { name, description, price, category_id, stock_quantity, is_amazing_offer, discount_percentage } = req.body;
       
@@ -104,9 +126,12 @@ const updateProduct = async (req, res) => {
       updateData.discount_percentage = parseInt(req.body.discount_percentage) || 0;
     }
       
-    // Handle image update
+    // Handle image update with absolute URL
     if (req.file) {
-      updateData.image_url = `/uploads/${req.file.filename}`;
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      console.log('Base URL:', baseUrl);
+      updateData.image_url = `${baseUrl}/uploads/${req.file.filename}`;
+      console.log('Generated primary image URL:', updateData.image_url);
     }
       
     const updated = await Product.update(id, updateData);
@@ -115,13 +140,18 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
       
-    // If there are additional images, add them
+    // If there are additional images, add them with absolute URLs
     if (req.files && req.files.length > 0) {
-      const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      console.log('Processing additional images:', req.files.length);
+      const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+      console.log('Base URL:', baseUrl);
+      const imageUrls = req.files.map(file => `${baseUrl}/uploads/${file.filename}`);
+      console.log('Generated additional image URLs:', imageUrls);
       await Product.addImages(id, imageUrls);
     }
       
     const product = await Product.findById(id);
+    console.log('Final product data:', product);
     res.json({ 
       message: 'Product updated successfully',
       product 
